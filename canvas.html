@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>canvas例子</title>
+    <style>
+    .main{
+        width: 100%;
+        height: 900px;
+        background: #eee;
+    }
+    canvas{
+        border: solid 1px 
+    }
+    </style>
+</head>
+<body>
+    <div class="main" >
+        <canvas id="diagonal" height="200" width="200">
+            你的浏览器不支持canvas，当不支持canvas的时候会显示这些内容
+        </canvas>
+        <canvas id="trails" height="500" width="500">
+
+        </canvas>
+        <div id="support">
+
+        </div>
+        <script>
+        // 检测浏览器支持情况
+        try{
+            document.createElement("canvas").getContext("2d");
+            document.getElementById("support").innerHTML = "HTML5 Canvas is supported in your browser"
+        }
+        catch(e) {
+            document.getElementById("support").innerHTML = "HTML5 Canvas is not supported in your browser"
+        }
+        // 绘制一个直线
+        function drawDiagonal () {
+            // 取得canvas元素及其绘图上下文
+            let canvas = document.getElementById('diagonal');
+            let context = canvas.getContext('2d');//参数为希望使用的canvas类型，传入2d来获取一个二维上下文。
+
+
+            //保存当前绘图状态---在变化前保存context状态可以方便以后恢复。
+            context.save();
+
+            // 向右下方移动绘图上下文---当平移行为发生的时候，我们提供的变化坐标会被驾到结果坐标（对角线）上，
+            context.translate(70, 140); 
+
+
+            // 用绝对坐标来创建一条路径
+            context.beginPath();//开始绘制
+            context.moveTo(0, 0);//起点  --不会进绘制，只是将当前位置移动到新的目标坐标。
+            context.lineTo(70, -70);//终点  -不仅将当前位置移动到新的目标坐标，而且在两个坐标之间画一条直线。
+
+            // 将这条线绘制在canvas上
+            context.stroke();//完成绘制
+
+            // 恢复原有的绘图状态
+            context.restore();
+        }
+        // 绘制一棵树
+        function createCanopyPath (context) {
+            // 绘制树冠
+            context.beginPath();
+
+            context.moveTo(-25, -50);
+            context.lineTo(-10, -80);
+            context.lineTo(-20, -80);
+            context.lineTo(-5, -110);
+            context.lineTo(-15, -110);
+
+            // 树的顶点
+            context.lineTo(0, -140);
+            context.lineTo(15, -110);
+            context.lineTo(5, -110);
+            context.lineTo(20, -80);
+            context.lineTo(10, -80);
+            context.lineTo(25, -50);
+
+            // 连接起点，闭合路径
+            context.closePath();
+        }
+
+        function drawTrails(bark) {
+            let canvas = document.getElementById('trails');
+            let context = canvas.getContext('2d');
+
+            context.save();
+            context.translate(130, 250);
+
+            // 创建表现树冠的路径
+            createCanopyPath(context);
+            // 使用描边样式
+            // 加宽线条--线宽加粗到4个像素
+            context.lineWidth = 4;
+            // 平滑路径的接合点--修改当前形状中，线段的连接方式，也可以设置为bevel、miter等。
+            context.lineJoin = 'round';
+            // 将颜色改为棕色
+            context.strokeStyle = '#663300'
+
+
+            // 可以设置为butt、square、round。一次来指定线条末端的样式。这里是闭合的没有端点。
+            context.lineCap = 'butt';
+
+            // 将填充设置为绿色，并填充树冠
+            context.fillStyle = '#339900';
+            context.fill();
+
+            // 绘制树干
+            // 将填充色设置为棕色
+            // context.fillStyle = '#663300';
+            // 给树干进行使用渐变
+            // 创建用树干纹理的三阶水平渐变
+            let trunkGradient = context.createLinearGradient(-5, -50, 5, -50);
+            // 树干左侧边缘是一般程度的棕色
+            trunkGradient.addColorStop(0, '#663300');
+
+            // 树干中间偏左的位置颜色要淡一些。
+            trunkGradient.addColorStop(0.4, '#996600');
+
+            // 树干右侧边缘的颜色要深一些
+            trunkGradient.addColorStop(1, '#552200');
+
+            // 使用渐变色填充树干
+            context.fillStyle = trunkGradient;
+            // 填充用作树干的矩形区域
+            context.fillRect(-5, -50, 10, 50);//x, y两个参数位置和宽高。
+
+            // 接下来，创建垂直渐变，以用作树冠在树干上投影
+            let canopyShadow = context.createLinearGradient(0, -50, 0, 0);
+
+            // canvas添加图片，用背景图案填充作为树干的矩形.
+            context.drawImage(bark, -5, -50, 10, 50)//x, y两个参数位置和宽高。
+            // 投影渐变的起点是透明度设置50%的黑色
+
+
+
+            
+            // 绘制当前路径
+            context.stroke();
+
+            // 恢复context到原始状态，这样后续的canvas操作就不会被刚才的平移操作影响了。
+            context.restore();
+            createPath(context)
+        }
+        function createPath(context) {
+            // 保存canvas的状态
+            context.save();
+            context.translate(-10, 350);
+            context.beginPath();
+
+            // 第一条曲线向右上方弯曲。
+
+            context.moveTo(0, 0);
+            context.quadraticCurveTo(170, -50, 260, -190);
+
+            // 第二条曲线向右下方弯曲
+            context.quadraticCurveTo(310, -250, 410, -250);
+
+            // 使用棕色的粗线条来绘制路径
+            context.strokeStyle = '#663300';
+            context.lineWidth = 20;
+            context.stroke();
+        }
+        function drawtree() {
+            let bark = new Image();
+            bark.src = "./img/bark.jpg";
+            // 图片加载完成后，将其显示在canvas上。-必须等到图片完全加载后才能对其进行操作。浏览器通过会在页面脚本执行的同事异步加载图片
+            // ，如果试图在图片未完全加载之前旧将其呈现到canvas上，那么canvas将不会显示任何图片。
+            bark.onload = function () {
+                drawTrails(bark)
+            }
+        }
+        // window.addEventListener('load', drawDiagonal, true);
+        window.addEventListener('load', drawtree, true);
+        </script>
+    </div>
+</body>
+</html>
